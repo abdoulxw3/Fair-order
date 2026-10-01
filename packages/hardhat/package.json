@@ -1,0 +1,32 @@
+{
+  "name": "@fair-order/hardhat",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "chain": "hardhat node",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "launch:create": "ts-node scripts/create-launch.ts",
+    "launch:bid": "ts-node scripts/bid.ts",
+    "launch:settle": "ts-node scripts/settle.ts",
+    "launch:publish": "hardhat run scripts/publish.ts",
+    "lint": "hardhat compile && tsc --noEmit",
+    "launch:claim": "hardhat run scripts/claim.ts"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.62.0",
+    "@openzeppelin/contracts": "5.0.2",
+    "@openzeppelin/merkle-tree": "^1.0.7",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@types/node": "^20.14.0",
+    "hardhat": "^2.22.10",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.5.4"
+  }
+}

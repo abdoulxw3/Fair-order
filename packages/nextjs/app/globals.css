@@ -1,0 +1,27 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 44rem;
+  padding: 2rem 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid #8884;
+}
+
+td {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
