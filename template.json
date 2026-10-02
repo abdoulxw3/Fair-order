@@ -1,4 +1,7 @@
 {
+  "name": "fair-order",
+  "description": "Token sale where allocations follow HCS consensus order, with SaucerSwap liquidity seeding",
+  "version": "1.0.0",
   "create-scaffold-hbar": {
     "capabilities": {
       "frontend": ["nextjs-app"],
