@@ -1,16 +1,16 @@
 # Fair Order
 
-A scaffold-hbar template for a token sale where bids are ordered by Hedera Consensus Service (HCS) timestamps instead of gas auctions. Early bidders get their allocation first, nobody can front-run, and anyone can recompute the result from the public mirror node.
+A scaffold-hbar template for a token sale where allocation follows HCS consensus order rather than transaction gas price. Anyone can recompute the result from the public mirror node.
 
-When the claim window closes, the raised HBAR and the unclaimed tokens create a SaucerSwap pool in one transaction.
+When the claim window closes, the raised HBAR and the unclaimed tokens create a SaucerSwap pool.
 
 ## How it works
 
-1. **Bid.** Bidders send `{"v":1,"units":"<amount>"}` to an HCS topic. The bidder is the message payer, so nobody can bid on behalf of another account.
+1. **Bid.** Bidders send `{"v":1,"units":"<amount>"}` to an HCS topic. The bidder is the message payer, so a bid cannot be attributed to an account that did not pay for it.
 2. **Settle.** `launch:settle` reads the topic from the mirror node in consensus order and allocates first-come-first-served, up to a per-wallet cap and the total supply. It writes a Merkle tree of the allocations.
 3. **Publish.** The owner publishes the Merkle root to the `FairLaunch` contract. Anyone can rerun step 2 and compare roots.
 4. **Claim.** Each bidder calls `claim(amount, proof)` and pays `amount * tinybarPerUnit` in HBAR to receive the HTS token.
-5. **Seed.** After the deadline the owner calls `seedLiquidity`. The contract creates a new SaucerSwap HBAR/token pool with the raised HBAR and the same amount of tokens, at the sale price. `sweep` returns anything left.
+5. **Seed.** After the deadline the owner calls `seedLiquidity`. The contract creates a new SaucerSwap HBAR/token pool with the raised HBAR and the same value of tokens, at the sale price. `sweep` returns anything left.
 
 Services used: HCS (ordering), HTS (sale token), smart contracts (claims), SaucerSwap (liquidity).
 
@@ -131,9 +131,11 @@ The full flow (bid, settle, publish, claim, seed) was run on Hedera testnet:
 
 ## Limits
 
+- Allocation order is the consensus timestamp the network assigns to each bid. The template does not defend against one person bidding from several accounts, because the wallet cap applies per account.
 - The owner chooses the claim window and publishes the root. Trust in the result comes from anyone being able to recompute it from the topic, not from the contract verifying HCS.
 - `seedLiquidity` calls `addLiquidityETHNewPool`, so it only works for a token that has no SaucerSwap pool yet. The owner pays the pool creation fee, and the script adds a 5% margin to it. Any surplus joins the pool.
 - LP tokens go to the owner. `seed.ts` sets the owner's account to unlimited automatic token associations so it can receive them.
 - Inside the Hedera EVM, `msg.value` is in tinybars. The frontend, `claim.ts` and `seed.ts` convert to the weibar units that JSON-RPC expects.
+- Nothing here is audited. The contract is a reference for the pattern, not production-ready sale infrastructure.
 
 MIT licensed.
