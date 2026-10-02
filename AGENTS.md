@@ -22,6 +22,8 @@ Run all three before finishing a change.
 - Merkle leaves are `keccak256(bytes.concat(keccak256(abi.encode(account, amount))))`, matching `@openzeppelin/merkle-tree`. Keep the contract and `settle.ts` in agreement
 - Bidders are identified by the HCS message payer, never by message content
 - Allocation logic lives only in `scripts/lib/allocate.ts` and must stay deterministic so anyone can recompute it
+- `seedLiquidity` uses SaucerSwap's `addLiquidityETHNewPool`. Its `msg.value` is the pool creation fee, and `seed.ts` computes that fee from the factory and the mirror node exchange rate
+- Hedera calls that create tokens or pools need a high gas limit. `seed.ts` sets 8,000,000 and simulates with `staticCall` first
 
 ## Do not
 
