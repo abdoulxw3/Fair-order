@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "Fair Launch",
+  title: "Fair Order",
   description: "Token sale allocated by HCS consensus order",
 };
 

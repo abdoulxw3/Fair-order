@@ -79,7 +79,7 @@ export default function Home() {
 
   return (
     <main>
-      <h1>Fair Launch</h1>
+      <h1>Fair Order</h1>
       <p>Bids are ordered by HCS consensus time. Allocations follow that order.</p>
 
       <h2>Bid log</h2>
