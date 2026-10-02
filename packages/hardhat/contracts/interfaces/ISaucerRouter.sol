@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 interface ISaucerRouter {
-    function addLiquidityETH(
+    function addLiquidityETHNewPool(
         address token,
         uint256 amountTokenDesired,
         uint256 amountTokenMin,

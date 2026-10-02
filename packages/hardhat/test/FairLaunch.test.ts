@@ -99,14 +99,15 @@ describe("FairLaunch", () => {
     const { alice, token, router, launch, tree, deadline } = await setup();
     await launch.connect(alice).claim(600, tree.getProof(0), { value: 600n * PRICE });
 
-    await expect(launch.seedLiquidity(400, 1_200, 0, 0)).to.be.revertedWithCustomError(
+    await expect(launch.seedLiquidity(400, 1_200, 0, 0, { value: 300 })).to.be.revertedWithCustomError(
       launch,
       "ClaimStillOpen",
     );
 
     await time.increaseTo(deadline + 1);
-    await launch.seedLiquidity(400, 1_200, 0, 0);
+    await launch.seedLiquidity(400, 1_200, 0, 0, { value: 300 });
     expect(await token.balanceOf(await router.getAddress())).to.equal(400);
+    expect(await ethers.provider.getBalance(await router.getAddress())).to.equal(1_500);
   });
 
   it("sweeps leftovers to the owner after claims close", async () => {

@@ -82,16 +82,17 @@ contract FairLaunch is Ownable, ReentrancyGuard {
         emit Claimed(msg.sender, amount);
     }
 
-    /// @dev LP tokens go to the owner, who must have the LP token associated.
+    /// @dev Creates the SaucerSwap pool, so msg.value must cover the pool creation fee. Any surplus joins the pool.
+    /// LP tokens go to the owner, who needs a free auto-association slot to receive them.
     function seedLiquidity(
         uint256 tokenAmount,
         uint256 hbarAmount,
         uint256 minToken,
         uint256 minHbar
-    ) external onlyOwner nonReentrant {
+    ) external payable onlyOwner nonReentrant {
         if (block.timestamp <= claimDeadline) revert ClaimStillOpen();
         token.forceApprove(address(router), tokenAmount);
-        router.addLiquidityETH{value: hbarAmount}(
+        router.addLiquidityETHNewPool{value: hbarAmount + msg.value}(
             address(token),
             tokenAmount,
             minToken,

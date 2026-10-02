@@ -13,7 +13,9 @@
     "launch:settle": "ts-node scripts/settle.ts",
     "launch:publish": "hardhat run scripts/publish.ts",
     "lint": "hardhat compile && tsc --noEmit",
-    "launch:claim": "hardhat run scripts/claim.ts"
+    "launch:claim": "hardhat run scripts/claim.ts",
+    "launch:quote": "hardhat run scripts/quote-fee.ts",
+    "launch:seed": "hardhat run scripts/seed.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.62.0",

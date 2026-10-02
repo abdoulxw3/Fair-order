@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { ethers } from "hardhat";
 import { required } from "./lib/config";
 
-const CLAIM_WINDOW_SECONDS = 86_400;
+const CLAIM_WINDOW_SECONDS = Number(process.env.CLAIM_WINDOW_SECONDS ?? 86_400);
 
 async function main() {
   const { root } = JSON.parse(
