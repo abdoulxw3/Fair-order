@@ -1,112 +1,63 @@
-"use client";
+import BidLog from "./components/BidLog";
+import Claim from "./components/Claim";
+import Proof from "./components/Proof";
+import Simulator from "./components/Simulator";
 
-import { useCallback, useEffect, useState } from "react";
-import { BrowserProvider, Contract, type Eip1193Provider } from "ethers";
-import { FAIR_LAUNCH_ABI, MIRROR_URL, WEIBAR_PER_TINYBAR } from "../lib/abi";
-
-declare global {
-  interface Window {
-    ethereum?: Eip1193Provider;
-  }
-}
-
-interface Entry {
-  account: string;
-  amount: string;
-  proof: string[];
-}
-
-interface BidRow {
-  sequence: number;
-  payer: string;
-  units: string;
-}
-
-const LAUNCH_ADDRESS = process.env.NEXT_PUBLIC_LAUNCH_ADDRESS ?? "";
-const TOPIC_ID = process.env.NEXT_PUBLIC_TOPIC_ID ?? "";
-
-async function loadBids(): Promise<BidRow[]> {
-  if (!TOPIC_ID) return [];
-  const res = await fetch(`${MIRROR_URL}/api/v1/topics/${TOPIC_ID}/messages?order=asc&limit=50`);
-  if (!res.ok) throw new Error(`Mirror node returned ${res.status}`);
-  const { messages } = await res.json();
-  return messages.flatMap(
-    (m: { sequence_number: number; payer_account_id: string; message: string }) => {
-      try {
-        const { units } = JSON.parse(atob(m.message));
-        return [{ sequence: m.sequence_number, payer: m.payer_account_id, units: String(units) }];
-      } catch {
-        return [];
-      }
-    },
-  );
-}
-
-async function loadEntries(): Promise<Entry[]> {
-  const res = await fetch("/allocations.json");
-  if (!res.ok) return [];
-  return (await res.json()).entries;
-}
+const STEPS = [
+  { title: "Bid", text: "Post a message to an HCS topic. The paying account is the bidder." },
+  { title: "Settle", text: "Read the topic from the mirror node and allocate in order, up to a cap." },
+  { title: "Publish", text: "The owner publishes a Merkle root. Anyone can recompute it." },
+  { title: "Claim", text: "Prove your allocation and pay HBAR to receive the HTS token." },
+  { title: "Seed", text: "Raised HBAR and tokens create a SaucerSwap pool." },
+];
 
 export default function Home() {
-  const [bids, setBids] = useState<BidRow[]>([]);
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    loadBids().then(setBids).catch((err: Error) => setStatus(err.message));
-    loadEntries().then(setEntries).catch((err: Error) => setStatus(err.message));
-  }, []);
-
-  const claim = useCallback(async () => {
-    if (!window.ethereum) return setStatus("No wallet found");
-    try {
-      const signer = await new BrowserProvider(window.ethereum).getSigner();
-      const entry = entries.find((e) => e.account.toLowerCase() === signer.address.toLowerCase());
-      if (!entry) return setStatus("This account has no allocation");
-
-      const launch = new Contract(LAUNCH_ADDRESS, FAIR_LAUNCH_ABI, signer);
-      const price: bigint = await launch.tinybarPerUnit();
-      const value = BigInt(entry.amount) * price * WEIBAR_PER_TINYBAR;
-
-      setStatus("Waiting for confirmation");
-      await (await launch.claim(entry.amount, entry.proof, { value })).wait();
-      setStatus(`Claimed ${entry.amount} units`);
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Claim failed");
-    }
-  }, [entries]);
-
   return (
-    <main>
-      <h1>Fair Order</h1>
-      <p>Bids are ordered by HCS consensus time. Allocations follow that order.</p>
+    <div className="wrap">
+      <nav className="nav">
+        <span className="brand">Fair Order</span>
+        <a className="muted small" href="https://github.com/abdoulxw3/Fair-order">
+          GitHub &rarr;
+        </a>
+      </nav>
 
-      <h2>Bid log</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Bidder</th>
-            <th>Units</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bids.map((b) => (
-            <tr key={b.sequence}>
-              <td>{b.sequence}</td>
-              <td>{b.payer}</td>
-              <td>{b.units}</td>
-            </tr>
+      <header className="hero">
+        <span className="pill">Hedera testnet &middot; HCS &middot; HTS &middot; SaucerSwap</span>
+        <h1>Token sales ordered by consensus, not gas.</h1>
+        <p>
+          Bids are HCS messages. Allocation follows their consensus order, and anyone can
+          recompute it from the mirror node.
+        </p>
+        <div className="actions">
+          <a className="btn primary" href="#try">Try the queue</a>
+          <a className="btn" href="#proof">See the testnet run</a>
+        </div>
+      </header>
+
+      <Simulator />
+      <BidLog />
+      <Claim />
+
+      <section className="section">
+        <h2>How it works</h2>
+        <div className="steps">
+          {STEPS.map((step, i) => (
+            <div key={step.title}>
+              <div className="mono accent small">{String(i + 1).padStart(2, "0")}</div>
+              <div className="step-title">{step.title}</div>
+              <div className="muted small">{step.text}</div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </section>
 
-      <h2>Claim</h2>
-      <button onClick={claim} disabled={!LAUNCH_ADDRESS || entries.length === 0}>
-        Claim allocation
-      </button>
-      <p>{status}</p>
-    </main>
+      <Proof />
+
+      <section className="section">
+        <h2>Scaffold it</h2>
+        <div className="code mono">npm create scaffold-hbar@latest -- --template abdoulxw3/Fair-order</div>
+        <p className="faint small">Testnet only, not audited. MIT licensed.</p>
+      </section>
+    </div>
   );
 }
