@@ -15,7 +15,8 @@
     "lint": "hardhat compile && tsc --noEmit",
     "launch:claim": "hardhat run scripts/claim.ts",
     "launch:quote": "hardhat run scripts/quote-fee.ts",
-    "launch:seed": "hardhat run scripts/seed.ts"
+    "launch:seed": "hardhat run scripts/seed.ts",
+    "launch:verify": "hardhat run scripts/verify.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.62.0",
