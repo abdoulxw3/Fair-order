@@ -1,12 +1,14 @@
 # Fair Order
 
-A scaffold-hbar template for a token sale where the order of bids comes from HCS, not from who pays the most gas.
+A scaffold-hbar template for a token sale where the order of bids comes from HCS consensus timestamps, and anyone can recompute who got what from the public record.
 
-Gas auctions are where token sales usually go wrong: whoever outbids everyone on gas gets in first. Here a bid is just an HCS message, the network puts a consensus timestamp on it, and the allocation follows that order. The mirror node is public, so you can check the result yourself.
+## Why
+
+A sale needs an order, and someone has to decide who gets in before the supply runs out. If the owner builds that list privately, you have to take their word for it. Here the bids are messages on a public HCS topic, each with a consensus timestamp. The allocation is a plain function of that log, so anyone can run it again and compare the result with what the owner published. Money doesn't buy a place in the queue, because every bid costs the same small fixed fee.
 
 ## How it works
 
-1. Bidders send a message like `{"v":1,"units":"500000000"}` to an HCS topic. The bidder is whoever paid for the message.
+1. Bidders send a message like `{"v":1,"units":"500000000"}` to an HCS topic. The bidder is whoever paid for the message. A bid costs the standard HCS message fee, a fraction of a cent and the same for everyone, so paying more doesn't move you up.
 2. `launch:settle` reads the topic from the mirror node in order and hands out tokens first come, first served, up to a per-wallet cap and the total supply. It writes the allocations as a Merkle tree.
 3. The owner publishes the Merkle root to the contract.
 4. Each bidder claims with a proof and pays HBAR (`amount * tinybarPerUnit`) to get the HTS token.
@@ -66,7 +68,7 @@ npm run launch:seed -w packages/hardhat -- --network hederaTestnet
 
 `npm run launch:quote -w packages/hardhat -- --network hederaTestnet` prints the current pool creation fee and your balance if you want to check before seeding.
 
-For the frontend, put `NEXT_PUBLIC_LAUNCH_ADDRESS` and `NEXT_PUBLIC_TOPIC_ID` in `packages/nextjs/.env.local` and run `npm run next:start`. It has a small simulator that orders the same bids by consensus time or by gas, a live bid log from the mirror node, and a claim button that appears once `allocations.json` exists. A bidder who isn't the deployer has to associate the token with their account before claiming.
+For the frontend, put `NEXT_PUBLIC_LAUNCH_ADDRESS` and `NEXT_PUBLIC_TOPIC_ID` in `packages/nextjs/.env.local` and run `npm run next:start`. It has a small simulator that orders the same bids by consensus time or by gas, a live bid log from the mirror node, and a claim button that appears once `allocations.json` exists. The "Highest gas" mode models chains where fees buy position. Hedera doesn't work that way. It's there so you can see what consensus ordering changes. A bidder who isn't the deployer has to associate the token with their account before claiming.
 
 | Variable | What it is |
 | --- | --- |
@@ -104,7 +106,7 @@ MATCH: the published root is reproducible from the HCS log.
 
 ## What it doesn't do
 
-- Ordering comes from the consensus timestamp. One person bidding from many accounts isn't stopped, because the cap is per account.
+- Money can't buy a place in the queue, but speed and account count still matter. A bot that submits the moment the sale opens will beat a person, and one person can bid from many accounts because the cap is per account. Pro-rata allocation over a bidding window would remove the speed race. I haven't built it.
 - The owner publishes the root. You trust it because you can recompute it, not because the contract checks HCS.
 - The supply and cap aren't stored on-chain, so a verifier has to get them from the owner.
 - `launch:seed` only works for a token with no SaucerSwap pool yet.
